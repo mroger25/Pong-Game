@@ -19,8 +19,8 @@ export class Paddle {
 
   update() {
     this.y = Math.max(
-      this.h / 2 + this.w / 2,
-      Math.min(this.height - this.h / 2 - this.w / 2, this.y + this.speed)
+      this.h / 2,
+      Math.min(this.height - this.h / 2, this.y + this.speed)
     );
   }
 
@@ -28,9 +28,5 @@ export class Paddle {
     const e = this.myCanvas.ctx;
     e.fillStyle = "#FFF";
     e.fillRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
-    e.beginPath();
-    e.arc(this.x, this.y + this.h / 2, this.w / 2, 0, 2 * Math.PI);
-    e.arc(this.x, this.y - this.h / 2, this.w / 2, 0, 2 * Math.PI);
-    e.fill();
   }
 }

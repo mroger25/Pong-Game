@@ -37,6 +37,34 @@ class GameManager {
     }
   }
 
+  score() {
+    const e = this.myCanvas.ctx;
+    e.fillStyle = "#FFF";
+    e.textAlign = "center";
+    e.textBaseline = "middle";
+    e.font = "20px Arial";
+    e.fillText(
+      "SCORE",
+      this.myCanvas.canvas.width / 2,
+      20
+    );
+    e.fillText(
+      ":",
+      this.myCanvas.canvas.width / 2,
+      45
+    );
+    e.fillText(
+      this.myPuck.lScore,
+      this.myCanvas.canvas.width / 2 - 20,
+      45
+    );
+    e.fillText(
+      this.myPuck.rScore,
+      this.myCanvas.canvas.width / 2 + 20,
+      45
+    );
+  }
+
   draw() {
     this.lPaddle.update();
     this.lPaddle.show();
@@ -46,6 +74,7 @@ class GameManager {
     this.myPuck.paddleCollision(this.lPaddle);
     this.myPuck.paddleCollision(this.rPaddle);
     this.myPuck.show();
+    this.score();
   }
 }
 
