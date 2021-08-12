@@ -1,6 +1,7 @@
 export class CanvasActuator {
-  constructor(w, h) {
+  constructor(w, h, color) {
     this.canvas = document.createElement("canvas");
+    this.canvas.style.background = color;
     this.events = {};
     this.start(w, h);
   }
@@ -12,6 +13,7 @@ export class CanvasActuator {
     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
     this.render();
     this.click();
+    this.keyListen();
   }
 
   emit(e, t) {
@@ -33,13 +35,24 @@ export class CanvasActuator {
   }
 
   clear() {
-    this.ctx.clearRect(0, 0, this.canvas.w, this.canvas.h);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   click() {
     this.canvas.addEventListener("click", (e) => {
       const n = { x: e.layerX, y: e.layerY };
       this.emit("click", n);
+    });
+  }
+
+  keyListen() {
+    document.addEventListener("keydown",(e)=>{
+      const n = e.code;
+      this.emit("keydown",n);
+    });
+    document.addEventListener("keyup",(e)=>{
+      const n = e.code;
+      this.emit("keyup",n);
     });
   }
 
