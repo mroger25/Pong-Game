@@ -10,7 +10,7 @@ export class Puck {
   initPos(s) {
     this.x = this.myCanvas.canvas.width / 2;
     this.y = this.myCanvas.canvas.height / 2;
-    const a = Math.random() * 6 - 3;
+    const a = Math.tan(1 - (Math.PI / 180) * Math.random() * 90);
     this.setMove(s, a);
   }
 
@@ -23,21 +23,19 @@ export class Puck {
 
   paddleCollision(p) {
     const c = this;
-    const xdcp = Math.abs(c.x - p.x);
-    const ydcp = Math.abs(c.y - p.y);
+    const dx = c.x - p.x;
+    const dy = c.y - p.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
     let crashed = !1;
-    if (xdcp > p.w / 2 + c.r) {
-    } else if (ydcp > p.h / 2) {
-    } else {
+    if (distance < c.r + p.r) {
       crashed = !0;
     }
     if (crashed) {
-      const ang = (c.y - p.y) / (c.x - p.x);
-      const pSide = p.x > c.myCanvas.canvas.width / 2;
-      const cSide = c.x < p.x;
-      if ((pSide && cSide) || !(pSide || cSide)) {
-        this.setMove(-this.s, ang);
-      }
+      const ang_collision = dy / dx;
+      const ang_collision_perp = -1 / ang_collision; // tg (a)
+      // tg (a+b) <=> tg (180+a-b)
+      const ang = f;
+      this.setMove(-this.s, ang);
     }
   }
 
