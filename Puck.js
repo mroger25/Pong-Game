@@ -10,15 +10,15 @@ export class Puck {
   initPos(s) {
     this.x = this.myCanvas.canvas.width / 2;
     this.y = this.myCanvas.canvas.height / 2;
-    const a = Math.tan(1 - (Math.PI / 180) * Math.random() * 90);
+    const a = Math.random() * 360;
     this.setMove(s, a);
   }
 
   setMove(s, a) {
     this.s = s;
     this.a = a;
-    this.xSpeed = (s * Math.sqrt(a * a + 1)) / (1 + a * a);
-    this.ySpeed = a * this.xSpeed;
+    this.xSpeed = Math.cos(a * (Math.PI / 180)) * s;
+    this.ySpeed = Math.sin(a * (Math.PI / 180)) * -s;
   }
 
   paddleCollision(p) {
@@ -30,20 +30,22 @@ export class Puck {
     if (distance < c.r + p.r) {
       crashed = !0;
     }
-    if (crashed) {
-      const ang_collision = dy / dx;
-      const ang_collision_perp = -1 / ang_collision; // tg (a)
-      // tg (a+b) <=> tg (180+a-b)
-      const ang = f;
-      this.setMove(-this.s, ang);
-    }
+    // if (crashed) {
+    //   const c = dy / dx; // coef ang reta de colisão
+    //   const a = -1 / c; // coef ang reta perpendicular à reta de colisão
+    //   const b = this.a;
+    //   const d = (b - a) / (1 + a * b); // coef_ang_inc <=> tg (180+a-b)
+    //   const e = -d; // coef ang ref
+    //   const ang = f;
+    //   this.setMove(-this.s, ang);
+    // }
   }
 
   update() {
     this.x += this.xSpeed;
     this.y += this.ySpeed;
     if (this.y - this.r < 0 || this.y + this.r > this.myCanvas.canvas.height) {
-      this.setMove(this.s, -this.a);
+      this.setMove(this.s, 360 - this.a);
     }
     if (this.x + this.r < 0 || this.x - this.r > this.myCanvas.canvas.width) {
       if (this.x < this.myCanvas.canvas.width / 2) {
@@ -51,7 +53,7 @@ export class Puck {
       } else {
         this.lScore++;
       }
-      this.initPos(-this.s);
+      this.initPos(this.s);
     }
   }
 
