@@ -21,27 +21,16 @@ export class Puck {
     this.ySpeed = Math.sin(a * (Math.PI / 180)) * -s;
   }
 
-  paddleCollision(p) {
+  paddleCollision() {
     const c = this;
+    const p = c.x < c.myCanvas.canvas.width / 2 ? c.lPaddle : c.rPaddle;
     const dx = c.x - p.x;
     const dy = c.y - p.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    let crashed = !1;
-    if (distance < c.r + p.r) {
-      crashed = !0;
-    }
-    // if (crashed) {
-    //   const c = dy / dx; // coef ang reta de colisão
-    //   const a = -1 / c; // coef ang reta perpendicular à reta de colisão
-    //   const b = this.a;
-    //   const d = (b - a) / (1 + a * b); // coef_ang_inc <=> tg (180+a-b)
-    //   const e = -d; // coef ang ref
-    //   const ang = f;
-    //   this.setMove(-this.s, ang);
-    // }
+    this.crashed = distance < c.r + p.r ? !0 : !1;
   }
 
-  update() {
+  move() {
     this.x += this.xSpeed;
     this.y += this.ySpeed;
     if (this.y - this.r < 0 || this.y + this.r > this.myCanvas.canvas.height) {
@@ -57,11 +46,44 @@ export class Puck {
     }
   }
 
+  update(lPaddle, rPaddle) {
+    this.lPaddle = lPaddle;
+    this.rPaddle = rPaddle;
+    this.move();
+    this.paddleCollision();
+  }
+
   show() {
-    const e = this.myCanvas.ctx;
+    const c = this;
+    const e = c.myCanvas.ctx;
     e.fillStyle = "#FFF";
     e.beginPath();
-    e.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+    e.arc(c.x, c.y, c.r, 0, 2 * Math.PI);
     e.fill();
+
+    const p = c.x < c.myCanvas.canvas.width / 2 ? c.lPaddle : c.rPaddle;
+
+    const m = c.ySpeed / c.xSpeed;
+    const f_reta_ponto = (m, p, color) => {
+      const f = (x) => {
+        return m * (x - p.x) + p.y;
+      };
+      e.strokeStyle = color;
+      e.beginPath();
+      e.moveTo(0, f(0));
+      e.lineTo(c.myCanvas.canvas.width, f(c.myCanvas.canvas.width));
+      e.stroke();
+    };
+    const f_circle_center = (R, p, color) => {
+      e.strokeStyle = color;
+      e.beginPath();
+      e.arc(p.x, p.y, R, 0, 2 * Math.PI);
+      e.stroke();
+    };
+
+    f_circle_center(p.r / 2, { x: p.x, y: p.y }, "blue");
+    f_circle_center(p.r, { x: p.x, y: p.y }, "cyan");
+    f_reta_ponto((p.y - c.y) / (p.x - c.x), { x: p.x, y: p.y }, "cyan");
+    f_reta_ponto(m, { x: p.x, y: p.y }, "blue");
   }
 }

@@ -28,7 +28,6 @@ export class Paddle {
   show() {
     const e = this.myCanvas.ctx;
     e.fillStyle = "#999";
-    // e.fillRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     e.beginPath();
     e.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
     e.fill();
