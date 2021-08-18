@@ -1,97 +1,68 @@
 export class Puck {
-  constructor(e) {
-    this.myCanvas = e;
+  constructor(court) {
+    this.court = court;
     this.r = 12;
     this.lScore = 0;
     this.rScore = 0;
-    this.s = 5;
     this.initPos();
   }
 
   initPos() {
-    this.x = this.myCanvas.canvas.width / 2;
-    this.y = this.myCanvas.canvas.height / 2;
+    this.pos = { x: 0, y: 0 };
+    this.lastPos = { x: 0, y: 0 };
     const a = Math.random() * 360;
-    const v = {};
-    v.x = Math.cos(a * (Math.PI / 180)) * this.s;
-    v.y = Math.sin(a * (Math.PI / 180)) * -this.s;
-    this.setMove(v);
+    const speed = { x: 5, y: -5 };
+    speed.x *= Math.cos(a * (Math.PI / 180));
+    speed.y *= Math.sin(a * (Math.PI / 180));
+    this.setMove(speed);
   }
 
-  setMove(v) {
-    this.v = v;
+  setMove(speed) {
+    this.speed = speed;
   }
 
-  paddleCollision() {
+  checkCollision() {
     const c = this;
-    const p = c.x < c.myCanvas.canvas.width / 2 ? c.lPaddle : c.rPaddle;
-    const dx = c.x - p.x;
-    const dy = c.y - p.y;
+    const p = c.pos.x < 0 ? c.lPaddle : c.rPaddle;
+    const dx = c.pos.x - p.pos.x;
+    const dy = c.pos.y - p.pos.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    this.crashed = distance < c.r + p.r ? !0 : !1;
-    if (this.crashed) {
-      const p = c.x < c.myCanvas.canvas.width / 2 ? c.lPaddle : c.rPaddle;
-      const draw_line_p_p = (a, b) => {
-        const ca = (a.y - b.y) / (a.x - b.x);
-        const f = (x) => {
-          return a.y + (x - a.x) * ca;
-        };
-        const p = { x: 0 };
-        const q = { x: c.myCanvas.canvas.width };
-        p.y = f(p.x);
-        q.y = f(q.x);
-        return ca;
+    const crashed = distance <= c.r + p.r;
+    if (crashed) {
+      const posPuck = {
+        x: c.pos.x - p.pos.x,
+        y: c.pos.y - p.pos.y,
       };
-      const intersection_line_circle = ({ m, R, p }) => {
-        const a = m * m * p.x + p.x;
-        const b = m * m + 1;
-        const c = R * Math.sqrt(b);
-        const x1 = (a + c) / b;
-        const x2 = (a - c) / b;
-        const y1 = m * (x1 - p.x) + p.y;
-        const y2 = m * (x2 - p.x) + p.y;
-        return [
-          { x: x1, y: y1 },
-          { x: x2, y: y2 },
-        ];
-      };
-
-      const crash = intersection_line_circle({
-        m: (p.y - c.y) / (p.x - c.x),
-        R: p.r,
-        p: { x: p.x, y: p.y },
-      });
-      const focus = intersection_line_circle({
-        m: c.v.y / c.v.x,
-        R: p.r / 2,
-        p: { x: p.x, y: p.y },
-      });
-      const pcrash = c.x > p.x ? crash[0] : crash[1];
-      const pfocus = c.x > p.x ? focus[0] : focus[1];
-      const ca = draw_line_p_p(pcrash, pfocus);
-      const new_vector = intersection_line_circle({
-        m: ca,
-        R: Math.sqrt(c.v.x * c.v.x + c.v.y * c.v.y),
-        p: { x: c.x, y: c.y },
-      });
-      const v = c.x > p.x ? new_vector[0] : new_vector[1];
-      c.setMove({ x: v.x - c.x, y: v.y - c.y });
+      const speedPuck = Math.sqrt(
+        (c.lastPos.x - c.pos.x) ** 2 + (c.lastPos.y - c.pos.y) ** 2
+      );
+      const a = speedPuck * 0.2;
+      const vpuck = Math.sqrt(posPuck.x * posPuck.x + posPuck.y * posPuck.y);
+      const vectorY = (a * posPuck.y) / vpuck;
+      const vectorX = (a * posPuck.x) / vpuck;
+      c.speed.x = -(c.lastPos.x - c.pos.x) + vectorX - (p.lastPos.x - p.pos.x);
+      c.speed.y = -(c.lastPos.y - c.pos.y) + vectorY - (p.lastPos.y - p.pos.y);
     }
   }
 
   move() {
-    this.x += this.v.x;
-    this.y += this.v.y;
-    if (this.y - this.r < 0 || this.y + this.r > this.myCanvas.canvas.height) {
-      this.setMove({ x: this.v.x, y: -this.v.y });
+    this.lastPos.x = this.pos.x;
+    this.lastPos.y = this.pos.y;
+    this.pos.x += this.speed.x;
+    this.pos.y += this.speed.y;
+    if (
+      this.pos.y - this.r < -this.court.mid.y ||
+      this.pos.y + this.r > +this.court.mid.y
+    ) {
+      this.setMove({ x: this.speed.x, y: -this.speed.y });
     }
-    if (this.x + this.r < 0 || this.x - this.r > this.myCanvas.canvas.width) {
-      if (this.x < this.myCanvas.canvas.width / 2) {
-        this.rScore++;
-      } else {
-        this.lScore++;
-      }
+    if (this.pos.x - this.r > +this.court.mid.x) {
       this.initPos();
+      this.lScore++;
+    }
+    if (this.pos.x + this.r < -this.court.mid.x) {
+      this.initPos();
+      this.rScore++;
     }
   }
 
@@ -99,15 +70,99 @@ export class Puck {
     this.lPaddle = lPaddle;
     this.rPaddle = rPaddle;
     this.move();
-    this.paddleCollision();
+    this.checkCollision();
   }
 
-  show() {
+  show(e) {
     const c = this;
-    const e = c.myCanvas.ctx;
+    e.save();
+    e.translate(c.court.mid.x, c.court.mid.y);
     e.fillStyle = "#FFF";
     e.beginPath();
-    e.arc(c.x, c.y, c.r, 0, 2 * Math.PI);
+    e.arc(c.pos.x, c.pos.y, c.r, 0, 2 * Math.PI);
     e.fill();
+
+    const p = c.pos.x < 0 ? c.lPaddle : c.rPaddle;
+    // const findCircleLineIntersections = (r, h, k, { m, n }, color) => {
+    //   // circle: (x-h)^2 + (y-k)^2 = r^2
+    //   // line: y=m*x+n
+    //   // r: circle radius
+    //   // h: x value of circle centre
+    //   // k: y value of circle centre
+    //   // m: slope
+    //   // n: y-intercept
+
+    //   // get a, b, c values
+    //   const a = 1 + m * m;
+    //   const b = (-h + m * (n - k)) * 2;
+    //   const c = h * h + (n - k) * (n - k) - r * r;
+
+    //   // get discriminant
+    //   const d = b * b - 4 * a * c;
+    //   const intersections = d >= 0 && [
+    //     { x: (-b + Math.sqrt(d)) / (2 * a) },
+    //     { x: (-b - Math.sqrt(d)) / (2 * a) },
+    //   ];
+    //   e.fillStyle = color;
+    //   intersections.forEach((p) => {
+    //     p.y = m * p.x + n;
+    //     e.beginPath();
+    //     e.arc(p.x, p.y, 2, 0, 2 * Math.PI);
+    //     e.fill();
+    //   });
+    //   return intersections;
+    // };
+    // const findLineEquation = (a, b, color) => {
+    //   const m = (b.y - a.y) / (b.x - a.x);
+    //   const n = a.y - m * a.x;
+    //   const f = (x) => {
+    //     return m * x + n;
+    //   };
+    //   const p = { x: this.court.mid.x, y: f(this.court.mid.x) };
+    //   const q = { x: -this.court.mid.x, y: f(-this.court.mid.x) };
+
+    //   e.strokeStyle = color;
+    //   e.beginPath();
+    //   e.moveTo(p.x, p.y);
+    //   e.lineTo(q.x, q.y);
+    //   e.stroke();
+    //   return { m, n };
+    // };
+    // const lineCollision = findLineEquation(
+    //   { x: c.pos.x, y: c.pos.y },
+    //   { x: p.pos.x, y: p.pos.y },
+    //   "blue"
+    // );
+    // const intersections = findCircleLineIntersections(
+    //   p.r,
+    //   p.pos.x,
+    //   p.pos.y,
+    //   lineCollision,
+    //   "red"
+    // );
+
+    const posPuck = {
+      x: c.pos.x - p.pos.x,
+      y: c.pos.y - p.pos.y,
+    };
+    const speedPuck = Math.sqrt(c.speed.x * c.speed.x + c.speed.y * c.speed.y);
+    const a = speedPuck * 2;
+    const vpuck = Math.sqrt(posPuck.x * posPuck.x + posPuck.y * posPuck.y);
+    const vectorY = (a * posPuck.y) / vpuck;
+    const vectorX = (a * posPuck.x) / vpuck;
+
+    e.strokeStyle = "red";
+    e.beginPath();
+    e.moveTo(0, 0);
+    e.lineTo(vectorX * 10, vectorY * 10);
+    e.stroke();
+
+    e.strokeStyle = "green";
+    e.beginPath();
+    e.moveTo(c.pos.x, c.pos.y);
+    e.lineTo(c.pos.x + c.speed.x * 10, c.pos.y + c.speed.y * 10);
+    e.stroke();
+
+    e.restore();
   }
 }

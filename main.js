@@ -1,4 +1,5 @@
 import { CanvasActuator } from "./CanvasActuator.js";
+import { Court } from "./Court.js";
 import { Paddle } from "./Paddle.js";
 import { Puck } from "./Puck.js";
 
@@ -8,55 +9,59 @@ class GameManager {
     this.myCanvas.on("draw", this.draw.bind(this));
     this.myCanvas.on("keydown", this.move.bind(this));
     this.myCanvas.on("keyup", this.stop.bind(this));
-    this.myPuck = new Puck(this.myCanvas);
-    this.lPaddle = new Paddle(this.myCanvas, 20);
-    this.rPaddle = new Paddle(this.myCanvas, 580);
+    this.court = new Court(
+      this.myCanvas.canvas.width,
+      this.myCanvas.canvas.height
+    );
+    this.myPuck = new Puck(this.court);
+    this.lPaddle = new Paddle(-1, this.court);
+    this.rPaddle = new Paddle(1, this.court);
   }
 
   move(e) {
     const acceptedKeys = {
-      KeyW: { o: this.lPaddle, p: -5 },
-      KeyS: { o: this.lPaddle, p: 5 },
-      ArrowUp: { o: this.rPaddle, p: -5 },
-      ArrowDown: { o: this.rPaddle, p: 5 },
+      KeyW: { p: this.lPaddle, d: { x: 0, y: -1 } },
+      KeyS: { p: this.lPaddle, d: { x: 0, y: 1 } },
+      KeyA: { p: this.lPaddle, d: { x: -1, y: 0 } },
+      KeyD: { p: this.lPaddle, d: { x: 1, y: 0 } },
+      ArrowUp: { p: this.rPaddle, d: { x: 0, y: -1 } },
+      ArrowDown: { p: this.rPaddle, d: { x: 0, y: 1 } },
+      ArrowLeft: { p: this.rPaddle, d: { x: -1, y: 0 } },
+      ArrowRight: { p: this.rPaddle, d: { x: 1, y: 0 } },
     };
     if (acceptedKeys[e]) {
-      acceptedKeys[e].o.move(acceptedKeys[e].p);
+      const p = acceptedKeys[e].p;
+      const d = acceptedKeys[e].d;
+      p.move(d);
     }
   }
 
   stop(e) {
     const acceptedKeys = {
-      KeyW: this.lPaddle,
-      KeyS: this.lPaddle,
-      ArrowUp: this.rPaddle,
-      ArrowDown: this.rPaddle,
+      KeyW: { p: this.lPaddle, d: { x: 0, y: -1 } },
+      KeyS: { p: this.lPaddle, d: { x: 0, y: 1 } },
+      KeyA: { p: this.lPaddle, d: { x: -1, y: 0 } },
+      KeyD: { p: this.lPaddle, d: { x: 1, y: 0 } },
+      ArrowUp: { p: this.rPaddle, d: { x: 0, y: -1 } },
+      ArrowDown: { p: this.rPaddle, d: { x: 0, y: 1 } },
+      ArrowLeft: { p: this.rPaddle, d: { x: -1, y: 0 } },
+      ArrowRight: { p: this.rPaddle, d: { x: 1, y: 0 } },
     };
     if (acceptedKeys[e]) {
-      acceptedKeys[e].move(0);
+      const p = acceptedKeys[e].p;
+      const d = acceptedKeys[e].d;
+      p.stop(d);
     }
-  }
-
-  score() {
-    const e = this.myCanvas.ctx;
-    e.fillStyle = "#FFF";
-    e.textAlign = "center";
-    e.textBaseline = "middle";
-    e.font = "20px Arial";
-    e.fillText("SCORE", this.myCanvas.canvas.width / 2, 20);
-    e.fillText(":", this.myCanvas.canvas.width / 2, 45);
-    e.fillText(this.myPuck.lScore, this.myCanvas.canvas.width / 2 - 20, 45);
-    e.fillText(this.myPuck.rScore, this.myCanvas.canvas.width / 2 + 20, 45);
   }
 
   draw() {
     this.lPaddle.update();
     this.rPaddle.update();
     this.myPuck.update(this.lPaddle, this.rPaddle);
-    this.lPaddle.show();
-    this.rPaddle.show();
-    this.myPuck.show();
-    this.score();
+    this.court.show(this.myCanvas.ctx, this.myPuck.lScore, this.myPuck.rScore);
+    this.lPaddle.show(this.myCanvas.ctx);
+    this.rPaddle.show(this.myCanvas.ctx);
+    this.myPuck.show(this.myCanvas.ctx);
   }
 }
 

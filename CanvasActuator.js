@@ -11,7 +11,7 @@ export class CanvasActuator {
     this.canvas.height = h;
     this.ctx = this.canvas.getContext("2d");
     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-    this.render();
+    this.render(w, h);
     this.click();
     this.keyListen();
   }
@@ -34,8 +34,8 @@ export class CanvasActuator {
     }
   }
 
-  clear() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  clear(w, h) {
+    this.ctx.clearRect(0, 0, w, h);
   }
 
   click() {
@@ -46,21 +46,21 @@ export class CanvasActuator {
   }
 
   keyListen() {
-    document.addEventListener("keydown",(e)=>{
+    document.addEventListener("keydown", (e) => {
       const n = e.code;
-      this.emit("keydown",n);
+      this.emit("keydown", n);
     });
-    document.addEventListener("keyup",(e)=>{
+    document.addEventListener("keyup", (e) => {
       const n = e.code;
-      this.emit("keyup",n);
+      this.emit("keyup", n);
     });
   }
 
-  render() {
-    this.clear();
+  render(x, y) {
+    this.clear(x, y);
     this.emit("draw");
     requestAnimationFrame(() => {
-      this.render();
+      this.render(x, y);
     });
   }
 }
